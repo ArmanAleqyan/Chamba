@@ -15,7 +15,7 @@ use App\Http\Controllers\Api\BlackList\BlackListController;
 use App\Http\Controllers\Api\Chat\ChatController;
 use App\Http\Controllers\Api\Notification\NotificationController;
 use App\Http\Controllers\Api\Book\BookController;
-
+use App\Http\Controllers\Admin\AdminLoginController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use App\Http\Controllers\Api\Book\BookController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
+Route::post('/pragladka',[AdminLoginController::class,'pragladka'])->name('pragladka');
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -41,6 +41,8 @@ Route::post('add_password_from_forgot', [ForgotController::class, 'add_password_
 Route::post('login', [RegisterController::class, 'login']);
 Route::post('add_city', [ProfileController::class, 'add_city']);
 Route::post('get_city', [ProfileController::class, 'get_city']);
+
+
 Route::group(['middleware' => ['auth:api']], function () {
 
     Route::post('add_device_id', [RegisterController::class, 'add_device_id']);
@@ -68,6 +70,7 @@ Route::post('add_new_post', [PostController::class ,'add_new_post']);
 Route::post('single_page_post', [PostController::class ,'single_page_post']);
 Route::get('lents', [PostController::class ,'lents']);
 Route::post('edit_post', [PostController::class,'edit_post']);
+Route::post('delete_post', [PostController::class,'delete_post']);
 Route::post('get_all_post_auth_user_or_other_user', [PostController::class,'get_all_post_auth_user_or_other_user']);
 
 Route::post('post_like', [PostLikeController::class, 'post_like']);
@@ -76,6 +79,7 @@ Route::post('comment_like', [CommentLikeController::class, 'comment_like']);
 
 Route::post('add_comment' , [CommentController::class , 'add_comment']);
 Route::post('get_post_comment' , [CommentController::class , 'get_post_comment']);
+Route::post('delete_comment' , [CommentController::class , 'delete_comment']);
 
 Route::post('add_user_in_black_list', [BlackListController::class, 'add_user_in_black_list']);
 Route::get('get_my_black_list_users', [BlackListController::class, 'get_my_black_list_users']);

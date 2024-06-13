@@ -27,7 +27,7 @@ class NotificationController extends Controller
     public function my_notification(){
         $get_black_list = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
 
-        $get = Notification::with('sender')->whernotin('sender_id',$get_black_list)->with('basketable')->where('receiver_id',auth()->user()->id)->simplepaginate(10);
+        $get = Notification::with('sender')->wherenotin('sender_id',$get_black_list)->orderby('status' , 'desc')->orderby('id', 'desc')->with('basketable')->where('receiver_id',auth()->user()->id)->simplepaginate(10);
 
         foreach ($get as $item) {
             if ($item->parent_type == '\App\Models\Post'){

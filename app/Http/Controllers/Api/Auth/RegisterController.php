@@ -318,7 +318,7 @@ class RegisterController extends Controller
                 }),
             ],
             'password' => 'max:254|required',
-            'password_confirmation' => 'required|same:password|max:254',
+//            'password_confirmation' => 'required|same:password|max:254',
         );
         $validator=Validator::make($request->all(),$rules);
         if($validator->fails())

@@ -55,9 +55,12 @@ class CommentController extends Controller
             ],400);
         }
         $get_black_list = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
+        $get_black_list_two = \App\Models\BlackList::where('receiver_id', auth()->user()->id)->get('sender_id')->pluck('sender_id')->toarray();
 
         $get = Comment::withNestedReplies()->where('parent_id', null)
             ->wherenotin('user_id', $get_black_list)
+            ->wherenotin('user_id', $get_black_list_two)
+            ->orderby('id','DESC')
 
             ->where('post_id', $request->post_id)
             ->simplePaginate(10);
@@ -139,6 +142,46 @@ class CommentController extends Controller
            'status' => true,
            'message' => 'comment added'
         ],200);
+
+    }
+
+
+    public function delete_comment(Request $request){
+        $rules=array(
+            'comment_id' => 'required',
+        );
+        $validator=Validator::make($request->all(),$rules);
+        if($validator->fails())
+        {
+            return response()->json([
+                'status' => false,
+                'message' =>$validator->errors()
+            ],400);
+        }
+
+        $get = Comment::where('id', $request->comment_id)->first();
+
+
+        if ($get == null){
+            return response()->json([
+               'status' => false,
+                'message' =>  'Wrong comment_id'
+            ]);
+        }
+
+
+        $get->delete();
+
+
+
+        return response()->json([
+           'status' => true,
+           'message' => "Deleted",
+            'comment_id' => $request->comment_id
+        ]);
+
+
+
 
     }
 }

@@ -92,30 +92,37 @@ class ProfileController extends Controller
     }
     /**
      * @OA\Post(
-     *     path="/api/update_lk_info",
-     *     operationId="updateLkInfo",
+     *     path="/update_lk_info",
+     *     operationId="updateLkInfoAction",
      *     tags={"User Management"},
-     *     summary="Update user's personal information",
-     *     security={{"Bearer":{}}},
+     *     summary="Update user's profile information",
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="data")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="User information updated successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="updated"),
-     *             @OA\Property(property="request_data", ref="data"),
+     *             @OA\Property(property="city_id", type="integer", example=1),
+     *             @OA\Property(property="date_of_birth", type="string", format="date", example="1990-01-01"),
+     *             @OA\Property(property="gender", type="string", enum={"male", "female", "other"}, example="male"),
+     *             @OA\Property(property="student", type="boolean", example=true),
+     *             @OA\Property(property="mgu", type="string", example="MGU University"),
+     *             @OA\Property(property="web", type="string", example="https://example.com"),
+     *             @OA\Property(property="phone", type="string", example="+1234567890"),
      *         ),
      *     ),
      *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated",
+     *         response=200,
+     *         description="User profile information updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="updated"),
+     *             @OA\Property(property="request_data", type="object", ref=""),
+     *         ),
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Unprocessable Entity",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Unauthenticated"),
+     *             @OA\Property(property="message", type="object", example={"city_id": {"The city_id field is required."}}),
      *         ),
      *     ),
      * )
@@ -123,19 +130,23 @@ class ProfileController extends Controller
 
     public function update_lk_info(Request $request){
         auth()->user()->update([
-            'city_id' => $request->city_id,
+            'city_id' => $request->city_id??auth()->user()->city_id,
             'date_of_birth' => $request->date_of_birth,
             'gender' => $request->gender,
             'student' => $request->student,
             'mgu' => $request->mgu,
             'web' => $request->web,
             'phone' => $request->phone,
+            'work' => $request->work,
+            'work_type' => $request->work_type,
         ]);
+
 
         return response()->json([
            'status' => true,
            'message' => 'updated',
-           'request_data' => $request->all()
+           'request_data' => $request->all(),
+            'auth_user' => auth()->user()
         ],200);
     }
     /**
@@ -255,10 +266,14 @@ class ProfileController extends Controller
 
 
     public function single_page_user(Request $request){
-        $get_user = User::where('id', $request->user_id)->with('follow_status_sender','follow_status_receiver')->where('id', '!=', auth()->user()->id)->first();
+        $get_user = User::where('id', $request->user_id)->with('follow_status_sender','city','follow_status_receiver')->where('id', '!=', auth()->user()->id)->first();
+        $get_black_list_one = \App\Models\BlackList::where('sender_id', $request->user_id)->get('receiver_id')->pluck('receiver_id')->toarray();
+        $get_black_list_two = \App\Models\BlackList::where('receiver_id', $request->user_id)->get('sender_id')->pluck('sender_id')->toarray();
 
-        $followers_count = Follow::where('receiver_id', $request->user_id)->count();
-        $follower_count = Follow::where('sender_id', $request->user_id)->count();
+        $followers_count = Follow::where('receiver_id', $request->user_id)    ->wherenotin('receiver_id', $get_black_list_one)->wherenotin('sender_id', $get_black_list_two)
+            ->wherenotin('receiver_id',$get_black_list_two )->wherenotin('sender_id', $get_black_list_one)->count();
+        $follower_count = Follow::where('sender_id', $request->user_id)    ->wherenotin('receiver_id', $get_black_list_one)->wherenotin('sender_id', $get_black_list_two)
+            ->wherenotin('receiver_id',$get_black_list_two )->wherenotin('sender_id', $get_black_list_one)->count();
         $post_count = Post::where('user_id', $request->user_id)->count();
 
         if ($get_user == null){
@@ -303,10 +318,23 @@ class ProfileController extends Controller
      */
     public function auth_user_info(){
 
-        $user = User::where('id', auth()->user()->id)->first();
+        $user = User::where('id', auth()->user()->id)->with('city')->first();
+        $get_black_list_one = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
+        $get_black_list_two = \App\Models\BlackList::where('receiver_id', auth()->user()->id)->get('sender_id')->pluck('sender_id')->toarray();
+        $followers_count = Follow::where('receiver_id', auth()->user()->id )
+            ->wherenotin('receiver_id', $get_black_list_one)->wherenotin('sender_id', $get_black_list_two)
+            ->wherenotin('receiver_id',$get_black_list_two )->wherenotin('sender_id', $get_black_list_one)
+            ->count();
 
-        $followers_count = Follow::where('receiver_id', auth()->user()->id)->count();
-        $follower_count = Follow::where('sender_id', auth()->user()->id)->count();
+
+        $follower_count = Follow::where('sender_id', auth()->user()->id)
+            ->wherenotin('receiver_id', $get_black_list_one)->wherenotin('sender_id', $get_black_list_two)
+            ->wherenotin('receiver_id',$get_black_list_two )->wherenotin('sender_id', $get_black_list_one)
+            ->count();
+
+
+
+
         $post_count = Post::where('user_id', auth()->user()->id)->count();
         $count_chat =    Chat::where('receiver_id', auth()->user()->id)->where('status', 1)->count();
         $not_count = Notification::where('receiver_id', auth()->user()->id)->where('status',1)->count();
@@ -484,7 +512,9 @@ class ProfileController extends Controller
         ]);
         return response()->json([
            'status' => true,
-           'message' => 'user Data Updated'
+           'message' => 'user Data Updated',
+            'request_data' => $request->all(),
+            'auth_user' => auth()->user()
         ],200);
     }
 

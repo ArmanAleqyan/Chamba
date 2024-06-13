@@ -21,15 +21,25 @@ Route::get('/', function () {
 });
 
 
+Route::get('android-privacy-policy', function (){
+   return view('android_privacy_policy');
+});
+Route::get('ios-privacy-policy', function (){
+    return view('ios_privacy_policy');
+});
+
+
 Route::get('/NoAuth', function () {
     return response()->json([
         'status' => false,
         'message' => 'No Auth user'
     ],401);
 })->name('NoAuth');
+
 Route::prefix('admin')->group(function () {
     Route::middleware(['NoAuthUser'])->group(function () {
         Route::get('/login',[AdminLoginController::class,'login'])->name('login');
+
         Route::post('/logined',[AdminLoginController::class,'logined'])->name('logined');
     });
 

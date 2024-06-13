@@ -12,6 +12,7 @@ use Validator;
 use App\Models\ChatRoom;
 use App\Models\Chat;
 use App\Events\NewMessage;
+
 use App\Notifications\MyCustomNotification;
 use Illuminate\Support\Facades\Notification;
 use App\Models\UserDevice;
@@ -93,6 +94,14 @@ class ChatController extends Controller
 
         Chat::where('room_id', $get_room->id)->delete();
         $get_room->delete();
+        $message = [
+            'type' => 'delete_chat',
+            'sender_id' => auth()->user()->id,
+            'receiver_id' => $request->receiver_id
+        ];
+
+        event(new NewMessage($message));
+
 
 
         return response()->json([
@@ -173,9 +182,10 @@ class ChatController extends Controller
 
 
 
-    $count =    Chat::where('receiver_id', auth()->user()->id)->where('status', 1)->count();
+    $count =    Chat::where('receiver_id',$request->receiver_id)->where('status', 1)->count();
     $thiscount  = Chat::where('sender_id', auth()->user()->id)->where('receiver_id', $request->receiver_id)->where('status', 1)->count();
         $message = [
+            'type' => 'new_message',
             'all_message_count' => $count,
             'sender_id' =>  $request->receiver_id,
             'receiver_id' => auth()->user()->id,
@@ -195,7 +205,10 @@ class ChatController extends Controller
         $get_device = UserDevice::where('user_id', $request->receiver_id)->get('device_id')->pluck('device_id')->toarray();
         if (isset($get_device )){
             $deviceToken = $get_device;
+
+
             $serverKey =  env('FCM_SERVER_KEY');
+            
             $url = 'https://fcm.googleapis.com/fcm/send';
             $headers = [
                 'Authorization' => 'key=' . $serverKey,
@@ -222,7 +235,9 @@ class ChatController extends Controller
 
         return response()->json([
            'status' => true,
-           'message' =>  'message created'
+           'message' =>  'message created',
+            'sender_id' => auth()->user()->id,
+            'receiver_id' => $request->receiver_id
         ],200);
     }
     /**
@@ -302,10 +317,10 @@ class ChatController extends Controller
                 })
                 ->paginate(20);
 
-            // To get the latest sender_id for each chat room, we'll use a subquery instead of querying in the loop
+
             $latestSenderSubquery = Chat::select('sender_id')
                 ->whereIn('room_id', $get_rooms->pluck('room_id'))
-                ->latest('created_at')
+                ->latest('id')
                 ->distinct('room_id');
 
             foreach ($get_rooms as $rt) {
@@ -390,6 +405,7 @@ class ChatController extends Controller
             ->where('receiver_id', $request->receiver_id)
             ->orwhere('receiver_id', auth()->user()->id)
             ->where('sender_id', $request->receiver_id)
+
             ->first();
 
         $get_black_list =
@@ -423,7 +439,7 @@ class ChatController extends Controller
                'status' => 0
             ]);
 
-            $gets = Chat::where('room_id', $get_room->id)->orderBy('id', 'asc')->simplepaginate(20);
+            $gets = Chat::where('room_id', $get_room->id)->orderBy('id', 'desc')->simplepaginate(20);
 
             return response()->json([
                'status' => true,

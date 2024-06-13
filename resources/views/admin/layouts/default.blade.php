@@ -9,8 +9,7 @@
     <title>@yield('title')</title>
     <!-- plugins:css -->
 
-    <link rel="stylesheet"
-          href="{{asset('admin/vendors/mdi/css/materialdesignicons.min.css')}}">
+    <link rel="stylesheet"  href="{{asset('admin/vendors/mdi/css/materialdesignicons.min.css')}}">
     <link rel="stylesheet" href="{{asset('admin/vendors/css/vendor.bundle.base.css')}}">
     <!-- endinject -->
     <!-- Plugin css for this page -->
@@ -30,8 +29,7 @@
     <!-- End layout styles -->
     <link rel="shortcut icon" href="{{asset('Лого.png')}}"/>
 
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+{{--    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>--}}
 
 
 </head>

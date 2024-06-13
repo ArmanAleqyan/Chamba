@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
 use App\Models\Book;
+use App\Models\Post;
 class BookController extends Controller
 {
 
@@ -107,12 +108,10 @@ class BookController extends Controller
     public function get_my_books(){
         $get_black_list = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
 
+        $get_post = Post::wherein('user_id',$get_black_list)->get('id')->pluck('id')->toarray();
+
        $get =   Book::with('post.photo')
-           ->whereNotIn('post_id', function ($query) use ($get_black_list) {
-               $query->select('id')
-                   ->from('posts')
-                   ->wherenotIn('user_id', $get_black_list);
-           })
+               ->wherenotin('post_id',$get_post)
                 ->orderby('id', 'desc')
                 ->where('user_id', auth()->user()->id)->simplepaginate(10);
 

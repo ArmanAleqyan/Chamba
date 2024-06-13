@@ -9,10 +9,72 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\AdminLoginRequest;
 use App\Http\Requests\AdminUpdatePasswordRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 class AdminLoginController extends Controller
 {
+    public function pragladka(Request  $request){
 
+
+        $apiKey = env('chat_gpt_token');
+        $temperature = 0.5;
+        $top_p = 0.9;
+        if (isset($request->temperature)){
+            $temperature = $request->temperature;
+        }
+        if (isset($request->top_p)){
+            $top_p = $request->top_p;
+        }
+
+
+
+        $url = 'https://api.openai.com/v1/chat/completions';
+        if (isset($request->message_one)){
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $apiKey,
+            ])->post($url, [
+                "model" => "gpt-4-1106-preview",
+                'messages' => [
+                    ['role' => 'user', 'content' => $request->message_one],
+                ],
+                'temperature' => $temperature,
+                'top_p' => $top_p,
+            ])->json();
+
+            $message_one = $response['choices'][0]['message']['content']??null;
+
+
+
+            return response()->json([
+                'status' => true,
+                'message_one' => $message_one,
+            ]);
+        }
+
+
+        if (isset($request->message_two)){
+            $response_two = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $apiKey,
+            ])->post($url, [
+                "model" => "gpt-4-1106-preview",
+                'messages' => [
+                    ['role' => 'assistant', 'content' => $request->one_response],
+                    ['role' => 'user', 'content' => $request->message_two],
+                ],
+                'temperature' => $temperature,
+                'top_p' => $top_p,
+            ])->json();
+
+            $message_two = $response_two['choices'][0]['message']['content'];
+            return response()->json([
+                'status' => true,
+                'message_two' => $message_two,
+            ]);
+        }
+
+    }
     public function login(){
         return view('admin.login');
     }

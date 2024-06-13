@@ -213,9 +213,10 @@ class PostLikeController extends Controller
         }
 
         $get_black_list = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
+        $get_black_list_two = \App\Models\BlackList::where('receiver_id', auth()->user()->id)->get('sender_id')->pluck('sender_id')->toarray();
 
 
-        $get = PostLike::where('post_id', $request->post_id)->wherenotin('user_id', $get_black_list)->orderby('id','desc')->with('user')->simplepaginate(10);
+        $get = PostLike::where('post_id', $request->post_id)->wherenotin('user_id', $get_black_list)->wherenotin('user_id' , $get_black_list_two)->orderby('id','desc')->with('user')->simplepaginate(10);
 
 
         return response()->json([

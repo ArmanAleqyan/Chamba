@@ -2205,6 +2205,105 @@
                 }
             }
         },
+        "/api/delete_post": {
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Delete a post",
+                "operationId": "422ed81e9493966e35352290f57de318",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "post_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response indicating that the post was deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Post Deleted"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request - Validation failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "object",
+                                            "example": {
+                                                "post_id": [
+                                                    "The post_id field is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity - Invalid post_id or user doesn't own the post",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Wrong Post Id"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/view_post_count": {
             "post": {
                 "tags": [
@@ -2806,26 +2905,62 @@
                 }
             }
         },
-        "/api/update_lk_info": {
+        "/update_lk_info": {
             "post": {
                 "tags": [
                     "User Management"
                 ],
-                "summary": "Update user's personal information",
-                "operationId": "updateLkInfo",
+                "summary": "Update user's profile information",
+                "operationId": "updateLkInfoAction",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "data"
+                                "properties": {
+                                    "city_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "date_of_birth": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "1990-01-01"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "enum": [
+                                            "male",
+                                            "female",
+                                            "other"
+                                        ],
+                                        "example": "male"
+                                    },
+                                    "student": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "mgu": {
+                                        "type": "string",
+                                        "example": "MGU University"
+                                    },
+                                    "web": {
+                                        "type": "string",
+                                        "example": "https://example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "User information updated successfully",
+                        "description": "User profile information updated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2839,7 +2974,7 @@
                                             "example": "updated"
                                         },
                                         "request_data": {
-                                            "$ref": "data"
+                                            "$ref": ""
                                         }
                                     },
                                     "type": "object"
@@ -2847,8 +2982,8 @@
                             }
                         }
                     },
-                    "401": {
-                        "description": "Unauthenticated",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2858,8 +2993,12 @@
                                             "example": false
                                         },
                                         "message": {
-                                            "type": "string",
-                                            "example": "Unauthenticated"
+                                            "type": "object",
+                                            "example": {
+                                                "city_id": [
+                                                    "The city_id field is required."
+                                                ]
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -2867,12 +3006,7 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ]
+                }
             }
         },
         "/api/validation_password_from_email": {

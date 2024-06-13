@@ -127,6 +127,12 @@ class FollowController extends Controller
         $get =   Follow::query();
 
         $string = $request->search;
+        $get_black_list_one = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
+        $get_black_list_two = \App\Models\BlackList::where('receiver_id',auth()->user()->id)->get('sender_id')->pluck('sender_id')->toarray();
+        $get->wherenotin('receiver_id', $get_black_list_one);
+        $get->wherenotin('sender_id',$get_black_list_one );
+        $get->wherenotin('receiver_id',$get_black_list_two );
+        $get->wherenotin('sender_id',$get_black_list_two );
         $withoutAtSymbol = ltrim($string, '@');
         if(isset($withoutAtSymbol) && isset($request->search)){
             $keyword =$withoutAtSymbol;
@@ -138,14 +144,17 @@ class FollowController extends Controller
                     ;
                 });
             }
+
+            $get->wherenotin('receiver_id', $get_black_list_one);
+            $get->wherenotin('sender_id',$get_black_list_two );
         }
         if (isset($request->user_id)){
-
             $get->wheresender_id($request->user_id)->paginate(10);
         }else{
             $get->wheresender_id(auth()->user()->id)->paginate(10);
-
         }
+
+
         $gets = $get->with('follower')->paginate(10);
         return response()->json([
             'status' => true,
@@ -201,7 +210,12 @@ class FollowController extends Controller
      */
     public function get_followers(Request $request){
       $get =   Follow::query();
-
+        $get_black_list_one = \App\Models\BlackList::where('sender_id', auth()->user()->id)->get('receiver_id')->pluck('receiver_id')->toarray();
+        $get_black_list_two = \App\Models\BlackList::where('receiver_id', auth()->user()->id)->get('sender_id')->pluck('sender_id')->toarray();
+        $get->wherenotin('receiver_id', $get_black_list_one);
+        $get->wherenotin('sender_id',$get_black_list_one );
+        $get->wherenotin('receiver_id',$get_black_list_two );
+        $get->wherenotin('sender_id',$get_black_list_two );
         $string = $request->search;
         $withoutAtSymbol = ltrim($string, '@');
         if(isset($withoutAtSymbol) && isset($request->search)){
@@ -312,7 +326,7 @@ class FollowController extends Controller
             Notification::create([
                 'sender_id' => auth()->user()->id,
                 'receiver_id' => $request->user_id,
-                'description' => 'подписался(ась) на вас',
+                'description' => 'Подписан(а) на Вас',
                 'parent_type' => '\App\Models\User',
                 'parent_id' => $request->user_id
             ]);
@@ -330,7 +344,7 @@ class FollowController extends Controller
                     'registration_ids' => $deviceToken,
                     'notification' => [
                         'title' => 'Подписка',
-                        'body' => 'Подписался(ась) на вас'
+                        'body' => 'Подписан(а) на Вас'
                     ],
                     'data' => [
                         'type' => 'Follow',

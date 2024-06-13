@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Validator;
 use App\Models\BlackList;
+use App\Events\NewMessage as ChanelBlackList;
 class BlackListController extends Controller
 {
 
@@ -52,7 +53,7 @@ class BlackListController extends Controller
             ],400);
         }
 
-        $get = BlackList::where('sender_id', auth()->user()->id)->first();
+        $get = BlackList::where('sender_id', auth()->user()->id)->where('receiver_id', $request->user_id)->first();
 
         if ($get == null){
             BlackList::create([
@@ -60,6 +61,13 @@ class BlackListController extends Controller
                'receiver_id' => $request->user_id
             ]);
 
+            $message = [
+                'type' => 'black_list_add',
+                'sender_id' => auth()->user()->id,
+                'receiver_id' => $request->user_id
+            ];
+
+            event(new ChanelBlackList($message));
 
             return response()->json([
                'status' => true,
@@ -68,6 +76,13 @@ class BlackListController extends Controller
         }else{
 
             $get->delete();
+            $message = [
+                'type' => 'black_list_delete',
+                'sender_id' => auth()->user()->id,
+                'receiver_id' => $request->user_id
+            ];
+
+            event(new ChanelBlackList($message));
 
             return response()->json([
                'status' => true,

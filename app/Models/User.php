@@ -28,6 +28,10 @@ class User extends Authenticatable
         return $this->hasMany(Follow::class, 'sender_id');
     }
 
+    public function city(){
+        return $this->belongsTo(City::class, 'city_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
